@@ -1,64 +1,64 @@
 ---
-# Source: developer-dashboard/templates/service-account.yaml
+# Source: example/templates/service-account.yaml
 apiVersion: v1
 kind: ServiceAccount
 metadata:
-  name: developer-dashboard
+  name: example
   annotations:
     serviceaccounts.openshift.io/oauth-redirectreference.primary: '{"kind":"OAuthRedirectReference","apiVersion":"v1","reference":{"kind":"Route","name":"dashboard"}}'
   labels:
-    app: developer-dashboard
-    "app.kubernetes.io/name": developer-dashboard
-    "helm.sh/chart": developer-dashboard-1.2.1
+    app: example
+    "app.kubernetes.io/name": example
+    "helm.sh/chart": example-1.2.1
     "app.kubernetes.io/instance": RELEASE-NAME
-    "app.kubernetes.io/component": developer-dashboard-serviceAccount
+    "app.kubernetes.io/component": example-serviceAccount
 ---
-# Source: developer-dashboard/templates/role.yaml
+# Source: example/templates/role.yaml
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
-  name: developer-dashboard-agent
+  name: example-agent
   labels:
-    app: developer-dashboard
-    "app.kubernetes.io/name": developer-dashboard
-    "helm.sh/chart": developer-dashboard-1.2.1
+    app: example
+    "app.kubernetes.io/name": example
+    "helm.sh/chart": example-1.2.1
     "app.kubernetes.io/instance": RELEASE-NAME
-    "app.kubernetes.io/component": developer-dashboard-role
+    "app.kubernetes.io/component": example-role
 rules:
   - apiGroups: [""]
     resources: ["configmaps"]
     verbs: ["*"]
 ---
-# Source: developer-dashboard/templates/role-binding.yaml
+# Source: example/templates/role-binding.yaml
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
-  name: developer-dashboard-agent
+  name: example-agent
   labels:
-    app: developer-dashboard
-    "app.kubernetes.io/name": developer-dashboard
-    "helm.sh/chart": developer-dashboard-1.2.1
+    app: example
+    "app.kubernetes.io/name": example
+    "helm.sh/chart": example-1.2.1
     "app.kubernetes.io/instance": RELEASE-NAME
-    "app.kubernetes.io/component": developer-dashboard-roleBinding
+    "app.kubernetes.io/component": example-roleBinding
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role
-  name: developer-dashboard-agent
+  name: example-agent
 subjects:
   - kind: ServiceAccount
-    name: developer-dashboard
+    name: example
     namespace: default
 ---
-# Source: developer-dashboard/templates/service.yaml
+# Source: example/templates/service.yaml
 apiVersion: v1
 kind: Service
 metadata:
-  name: RELEASE-NAME-developer-dashboard
+  name: RELEASE-NAME-example
   annotations:
     service.alpha.openshift.io/serving-cert-secret-name: dashboard-tls
   labels:
-    app: developer-dashboard
-    chart: developer-dashboard-1.2.1
+    app: example
+    chart: example-1.2.1
     release: RELEASE-NAME
     heritage: Helm
 spec:
@@ -73,43 +73,43 @@ spec:
       protocol: TCP
       name: http
   selector:
-    app: developer-dashboard
+    app: example
     release: RELEASE-NAME
 ---
-# Source: developer-dashboard/templates/deployment.yaml
+# Source: example/templates/deployment.yaml
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: RELEASE-NAME-developer-dashboard
+  name: RELEASE-NAME-example
   annotations:
     app.openshift.io/vcs-ref: v1.1.1
-    app.openshift.io/vcs-uri: https://github.com/ibm-garage-cloud/developer-dashboard
+    app.openshift.io/vcs-uri: https://github.com/ibm-garage-cloud/example
   labels:
-    app: developer-dashboard
-    chart: developer-dashboard-1.2.1
+    app: example
+    chart: example-1.2.1
     release: RELEASE-NAME
     heritage: Helm
-    "app.kubernetes.io/name": RELEASE-NAME-developer-dashboard
-    "helm.sh/chart": developer-dashboard-1.2.1
+    "app.kubernetes.io/name": RELEASE-NAME-example
+    "helm.sh/chart": example-1.2.1
     "app.kubernetes.io/instance": RELEASE-NAME
-    "app.kubernetes.io/component": RELEASE-NAME-developer-dashboard-deployment
+    "app.kubernetes.io/component": RELEASE-NAME-example-deployment
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: developer-dashboard
+      app: example
       release: RELEASE-NAME
   template:
     metadata:
       labels:
-        app: developer-dashboard
+        app: example
         release: RELEASE-NAME
-        "app.kubernetes.io/name": developer-dashboard
-        "helm.sh/chart": developer-dashboard-1.2.1
-        "app.kubernetes.io/instance": developer-dashboard
-        "app.kubernetes.io/component": developer-dashboard-pod
+        "app.kubernetes.io/name": example
+        "helm.sh/chart": example-1.2.1
+        "app.kubernetes.io/instance": example
+        "app.kubernetes.io/component": example-pod
     spec:
-      serviceAccountName: developer-dashboard
+      serviceAccountName: example
       volumes:
         - name: proxy-tls
           secret:
@@ -124,7 +124,7 @@ spec:
           args:
             - --https-address=:8443
             - --provider=openshift
-            - --openshift-service-account=developer-dashboard
+            - --openshift-service-account=example
             - --upstream=http://localhost:3000
             - --tls-cert=/etc/tls/private/tls.crt
             - --tls-key=/etc/tls/private/tls.key
@@ -132,8 +132,8 @@ spec:
           volumeMounts:
             - mountPath: /etc/tls/private
               name: proxy-tls
-        - name: developer-dashboard
-          image: "ibmgaragecloud/developer-dashboard:1.1.1"
+        - name: example
+          image: "ibmgaragecloud/example:1.1.1"
           imagePullPolicy: IfNotPresent
           ports:
             - name: http
@@ -154,19 +154,19 @@ spec:
           resources:
             {}
 ---
-# Source: developer-dashboard/templates/route.yaml
+# Source: example/templates/route.yaml
 apiVersion: route.openshift.io/v1
 kind: Route
 metadata:
   name: dashboard
   labels:
-    app: developer-dashboard
+    app: example
 spec:
   port:
     targetPort: proxy
   to:
     kind: Service
-    name: RELEASE-NAME-developer-dashboard
+    name: RELEASE-NAME-example
   tls:
     termination: reencrypt
 
