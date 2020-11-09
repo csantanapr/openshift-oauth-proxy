@@ -16,7 +16,7 @@ kind: Service
 metadata:
   name: example
   annotations:
-    service.alpha.openshift.io/serving-cert-secret-name: dashboard-tls
+    service.alpha.openshift.io/serving-cert-secret-name: example-tls
   labels:
     app: example
     "app.kubernetes.io/name": example
@@ -53,7 +53,7 @@ spec:
       volumes:
         - name: proxy-tls
           secret:
-            secretName: dashboard-tls
+            secretName: example-tls
       containers:
         - name: oauth-proxy
           image: openshift/oauth-proxy:latest
