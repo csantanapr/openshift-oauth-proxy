@@ -9,55 +9,17 @@ metadata:
   labels:
     app: example
     "app.kubernetes.io/name": example
-    "helm.sh/chart": example-1.2.1
-    "app.kubernetes.io/instance": RELEASE-NAME
-    "app.kubernetes.io/component": example-serviceAccount
----
-# Source: example/templates/role.yaml
-apiVersion: rbac.authorization.k8s.io/v1
-kind: Role
-metadata:
-  name: example-agent
-  labels:
-    app: example
-    "app.kubernetes.io/name": example
-    "helm.sh/chart": example-1.2.1
-    "app.kubernetes.io/instance": RELEASE-NAME
-    "app.kubernetes.io/component": example-role
-rules:
-  - apiGroups: [""]
-    resources: ["configmaps"]
-    verbs: ["*"]
----
-# Source: example/templates/role-binding.yaml
-apiVersion: rbac.authorization.k8s.io/v1
-kind: RoleBinding
-metadata:
-  name: example-agent
-  labels:
-    app: example
-    "app.kubernetes.io/name": example
-    "helm.sh/chart": example-1.2.1
-    "app.kubernetes.io/instance": RELEASE-NAME
-    "app.kubernetes.io/component": example-roleBinding
-roleRef:
-  apiGroup: rbac.authorization.k8s.io
-  kind: Role
-  name: example-agent
-subjects:
-  - kind: ServiceAccount
-    name: example
-    namespace: default
 ---
 # Source: example/templates/service.yaml
 apiVersion: v1
 kind: Service
 metadata:
-  name: RELEASE-NAME-example
+  name: example
   annotations:
     service.alpha.openshift.io/serving-cert-secret-name: dashboard-tls
   labels:
     app: example
+    "app.kubernetes.io/name": example
 spec:
   type: ClusterIP
   ports:
@@ -65,46 +27,27 @@ spec:
       targetPort: 8443
       protocol: TCP
       name: proxy
-    - port: 80
-      targetPort: 3000
-      protocol: TCP
-      name: http
   selector:
     app: example
-    release: RELEASE-NAME
 ---
 # Source: example/templates/deployment.yaml
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: RELEASE-NAME-example
-  annotations:
-    app.openshift.io/vcs-ref: v1.1.1
-    app.openshift.io/vcs-uri: https://github.com/ibm-garage-cloud/example
+  name: example
   labels:
     app: example
-    chart: example-1.2.1
-    release: RELEASE-NAME
-    heritage: Helm
-    "app.kubernetes.io/name": RELEASE-NAME-example
-    "helm.sh/chart": example-1.2.1
-    "app.kubernetes.io/instance": RELEASE-NAME
-    "app.kubernetes.io/component": RELEASE-NAME-example-deployment
+    "app.kubernetes.io/name": example
 spec:
   replicas: 1
   selector:
     matchLabels:
       app: example
-      release: RELEASE-NAME
   template:
     metadata:
       labels:
         app: example
-        release: RELEASE-NAME
         "app.kubernetes.io/name": example
-        "helm.sh/chart": example-1.2.1
-        "app.kubernetes.io/instance": example
-        "app.kubernetes.io/component": example-pod
     spec:
       serviceAccountName: example
       volumes:
@@ -122,7 +65,7 @@ spec:
             - --https-address=:8443
             - --provider=openshift
             - --openshift-service-account=example
-            - --upstream=http://localhost:3000
+            - --upstream=http://localhost:8080
             - --tls-cert=/etc/tls/private/tls.crt
             - --tls-key=/etc/tls/private/tls.key
             - --cookie-secret=SECRET
@@ -130,26 +73,12 @@ spec:
             - mountPath: /etc/tls/private
               name: proxy-tls
         - name: example
-          image: "ibmgaragecloud/example:1.1.1"
+          image: "docker.io/bitnami/nginx"
           imagePullPolicy: IfNotPresent
           ports:
             - name: http
-              containerPort: 3000
+              containerPort: 8080
               protocol: TCP
-          livenessProbe:
-            httpGet:
-              path: /
-              port: http
-          readinessProbe:
-            httpGet:
-              path: /
-              port: http
-          envFrom:
-            - configMapRef:
-                name: "ibmcloud-config"
-                optional: true
-          resources:
-            {}
 ---
 # Source: example/templates/route.yaml
 apiVersion: route.openshift.io/v1
@@ -163,6 +92,7 @@ spec:
     targetPort: proxy
   to:
     kind: Service
+    name: example
   tls:
     termination: reencrypt
 
