@@ -1,4 +1,4 @@
-# Example on how to configure OpenShift OAuth Proxy
+# Configure OpenShift OAuth Proxy
 
 This is very simple example on how to configure [OpenShift oauth-proxy](https://github.com/openshift/oauth-proxy)
 
